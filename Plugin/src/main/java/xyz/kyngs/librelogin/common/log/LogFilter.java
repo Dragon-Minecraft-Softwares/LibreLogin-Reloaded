@@ -47,18 +47,18 @@ public abstract class LogFilter {
      * @return {@code true} if the message should be logged, {@code false} if it should be filtered out
      */
     protected boolean checkMessage(String message, Object[] parameters) {
-        if (parameters == null || parameters.length <= 1 || !(parameters[1] instanceof String)) return true;
+        if (parameters == null || parameters.length <= 1 || !(parameters[1] instanceof String parameter)) return true;
 
-        var executed = switch (message) {
-            case "{} issued server command: {}" -> (String)parameters[1];
-            case "{0} executed command: /{1}", "{} -> executed command /{}" -> '/' + (String)parameters[1];
+        parameter = switch (message) {
+            case "{} issued server command: {}" -> parameter;
+            case "{0} executed command: /{1}", "{} -> executed command /{}" -> '/' + parameter;
             default -> "";
         };
 
-        if (executed.isEmpty()) return true;
+        if (parameter.isEmpty()) return true;
 
         for (String command : PROTECTED_COMMANDS) {
-            if (executed.startsWith(command)) return false;
+            if (parameter.startsWith(command)) return false;
         }
 
         return true;

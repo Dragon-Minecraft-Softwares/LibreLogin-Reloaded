@@ -65,9 +65,10 @@ repositories {
     maven { url = uri("https://mvn.exceptionflug.de/repository/exceptionflug-public/") }
     maven { url = uri("https://repo.dmulloy2.net/repository/public/") }
     maven { url = uri("https://repo.alessiodp.com/releases/") }
-    maven { url = uri("https://jitpack.io/") }
     maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
     maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
+    maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
+    maven { url = uri("https://jitpack.io/") }
 }
 
 blossom {

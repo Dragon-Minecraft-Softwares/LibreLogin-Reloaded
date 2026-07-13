@@ -32,7 +32,7 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
 
     private final LoadingCache<S, Optional<ServerPing>> pingCache;
     private final AuthenticLibreLogin<P, S> plugin;
-    private final Collection<S> limboServers;
+    private final Multimap<String, S> limboServers;
     private final Multimap<String, S> lobbyServers;
     private final CancellableTask pingCacheRefreshTask;
 
@@ -40,7 +40,7 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
         this.plugin = plugin;
 
         this.lobbyServers = HashMultimap.create();
-        this.limboServers = new ArrayList<>();
+        this.limboServers = HashMultimap.create();
 
         this.pingCache = Caffeine.newBuilder()
                 .build(server -> {
@@ -61,14 +61,14 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
         if (plugin.getConfiguration().get(ConfigurationKeys.PING_SERVERS))
             plugin.getLogger().info("Pinging servers...");
 
-        for (String limbo : plugin.getConfiguration().get(LIMBO)) {
-            var server = handle.getServer(limbo, true);
-            if (server != null) {
-                registerLimboServer(server);
+        plugin.getConfiguration().get(ConfigurationKeys.LIMBO).forEach((forced, server) -> {
+            var s = handle.getServer(server, true);
+            if (s != null) {
+                registerLimboServer(s, forced);
             } else {
-                plugin.getLogger().warn("Limbo server/world " + limbo + " not found!");
+                plugin.getLogger().warn("Limbo server/world " + server + " not found!");
             }
-        }
+        });
 
         plugin.getConfiguration().get(ConfigurationKeys.LOBBY).forEach((forced, server) -> {
             var s = handle.getServer(server, false);
@@ -145,15 +145,22 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
         return chooseLobbyServerInternal(user, player, remember, null);
     }
 
-    @Override
-    public S chooseLimboServer(User user, P player) {
+    public S chooseLimboServerInternal(@Nullable User user, P player) {
         var event = new AuthenticLimboServerChooseEvent<>(user, player, plugin);
 
         plugin.getEventProvider().fire(plugin.getEventTypes().limboServerChoose, event);
 
         if (event.getServer() != null) return event.getServer();
 
-        return limboServers.stream()
+        var virtual = plugin.getPlatformHandle().getPlayersVirtualHost(player);
+
+        plugin.getLogger().debug("Virtual host for player " + plugin.getPlatformHandle().getUsernameForPlayer(player) + ": " + virtual);
+
+        var servers = virtual == null ? limboServers.get("root") : limboServers.get(virtual);
+
+        if (servers.isEmpty()) servers = limboServers.get("root");
+
+        return servers.stream()
                 .filter(server -> {
                     var ping = getLatestPing(server);
 
@@ -164,12 +171,17 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
     }
 
     @Override
+    public S chooseLimboServer(User user, P player) {
+        return chooseLimboServerInternal(user, player);
+    }
+
+    @Override
     public Multimap<String, S> getLobbyServers() {
         return lobbyServers;
     }
 
     @Override
-    public Collection<S> getLimboServers() {
+    public Multimap<String, S> getLimboServers() {
         return limboServers;
     }
 
@@ -180,9 +192,9 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
     }
 
     @Override
-    public void registerLimboServer(S server) {
+    public void registerLimboServer(S server, String forcedHost) {
         getLatestPing(server);
-        limboServers.add(server);
+        limboServers.put(forcedHost, server);
     }
 
     @Override

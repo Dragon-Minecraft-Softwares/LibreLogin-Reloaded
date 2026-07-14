@@ -1,6 +1,6 @@
-plugins {
+/*plugins {
     id 'com.diffplug.spotless' version '8.8.0'
-}
+}*/
 
 defaultTasks 'updateLicenses', 'shadowJar'
 
@@ -21,10 +21,10 @@ subprojects {
         }
     }
 
-    spotless {
+    /*spotless {
         java {
             licenseHeaderFile rootProject.file('HEADER.txt')
             licenseHeaderFile rootProject.file('licenses/FASTLOGIN_LICENSE'), 'src/main/java/xyz/kyngs/librelogin/protocollib/EncryptionUtil.java'
         }
-    }
+    }*/
 }

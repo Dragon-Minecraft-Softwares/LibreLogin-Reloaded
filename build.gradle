@@ -10,7 +10,7 @@ subprojects {
     version = rootProject.version
     group = 'xyz.kyngs.librelogin'
 
-    apply plugin: 'com.diffplug.spotless'
+    //apply plugin: 'com.diffplug.spotless'
 
     repositories {
         mavenLocal()

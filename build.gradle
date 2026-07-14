@@ -1,5 +1,5 @@
 plugins {
-    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'com.diffplug.spotless' version '6.25.0'
 }
 
 defaultTasks 'updateLicenses', 'shadowJar'
@@ -10,7 +10,7 @@ subprojects {
     version = rootProject.version
     group = 'xyz.kyngs.librelogin'
 
-    apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'com.diffplug.spotless'
 
     repositories {
         mavenLocal()
@@ -21,14 +21,10 @@ subprojects {
         }
     }
 
-    license {
-        header = rootProject.file('HEADER.txt')
-        include '**/*.java'
-        newLine = true
-
-        matching("**/protocollib/EncryptionUtil.java") {
-            header = rootProject.file("licenses/FASTLOGIN_LICENSE")
+    spotless {
+        java {
+            licenseHeaderFile rootProject.file('HEADER.txt')
+            licenseHeaderFile rootProject.file('licenses/FASTLOGIN_LICENSE'), 'src/main/java/xyz/kyngs/librelogin/protocollib/EncryptionUtil.java'
         }
     }
-
 }
